@@ -7,6 +7,7 @@ using NzbDrone.Common.Disk;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Core.Download;
 using NzbDrone.Core.Extras;
+using NzbDrone.Core.History;
 using NzbDrone.Core.MediaFiles.Commands;
 using NzbDrone.Core.MediaFiles.Events;
 using NzbDrone.Core.Messaging.Commands;
@@ -28,6 +29,7 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
         private readonly IExtraService _extraService;
         private readonly IExistingExtraFiles _existingExtraFiles;
         private readonly IDiskProvider _diskProvider;
+        private readonly IHistoryService _historyService;
         private readonly IEventAggregator _eventAggregator;
         private readonly IManageCommandQueue _commandQueueManager;
         private readonly Logger _logger;
@@ -37,6 +39,7 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
                                       IExtraService extraService,
                                       IExistingExtraFiles existingExtraFiles,
                                       IDiskProvider diskProvider,
+                                      IHistoryService historyService,
                                       IEventAggregator eventAggregator,
                                       IManageCommandQueue commandQueueManager,
                                       Logger logger)
@@ -46,6 +49,7 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
             _extraService = extraService;
             _existingExtraFiles = existingExtraFiles;
             _diskProvider = diskProvider;
+            _historyService = historyService;
             _eventAggregator = eventAggregator;
             _commandQueueManager = commandQueueManager;
             _logger = logger;
@@ -67,7 +71,7 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
                                                            .ThenByDescending(e => e.LocalEpisode.Size))
             {
                 var localEpisode = importDecision.LocalEpisode;
-                var oldFiles = new List<EpisodeFile>();
+                var oldFiles = new List<DeletedEpisodeFile>();
 
                 try
                 {
@@ -91,7 +95,45 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
                     episodeFile.SeasonNumber = localEpisode.SeasonNumber;
                     episodeFile.Episodes = localEpisode.Episodes;
                     episodeFile.ReleaseGroup = localEpisode.ReleaseGroup;
+                    episodeFile.ReleaseHash = localEpisode.ReleaseHash;
                     episodeFile.Languages = localEpisode.Languages;
+
+                    // Prefer the release type from the download client, folder and finally the file so we have the most accurate information.
+                    episodeFile.ReleaseType = localEpisode.DownloadClientEpisodeInfo?.ReleaseType ??
+                                              localEpisode.FolderEpisodeInfo?.ReleaseType ??
+                                              localEpisode.FileEpisodeInfo.ReleaseType;
+
+                    if (downloadClientItem?.DownloadId.IsNotNullOrWhiteSpace() == true)
+                    {
+                        var grabHistory = _historyService.FindByDownloadId(downloadClientItem.DownloadId)
+                            .OrderByDescending(h => h.Date)
+                            .FirstOrDefault(h => h.EventType == EpisodeHistoryEventType.Grabbed);
+
+                        if (Enum.TryParse(grabHistory?.Data.GetValueOrDefault("indexerFlags"), true, out IndexerFlags flags))
+                        {
+                            episodeFile.IndexerFlags = flags;
+                        }
+
+                        // Prefer the release type from the grabbed history
+                        if (Enum.TryParse(grabHistory?.Data.GetValueOrDefault("releaseType"), true, out ReleaseType releaseType))
+                        {
+                            episodeFile.ReleaseType = releaseType;
+                        }
+                    }
+                    else
+                    {
+                        episodeFile.IndexerFlags = localEpisode.IndexerFlags;
+                        episodeFile.ReleaseType = localEpisode.ReleaseType;
+                    }
+
+                    // Fall back to parsed information if history is unavailable or missing
+                    if (episodeFile.ReleaseType == ReleaseType.Unknown)
+                    {
+                        // Prefer the release type from the download client, folder and finally the file so we have the most accurate information.
+                        episodeFile.ReleaseType = localEpisode.DownloadClientEpisodeInfo?.ReleaseType ??
+                                                  localEpisode.FolderEpisodeInfo?.ReleaseType ??
+                                                  localEpisode.FileEpisodeInfo.ReleaseType;
+                    }
 
                     bool copyOnly;
                     switch (importMode)
@@ -135,9 +177,9 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
                     {
                         if (localEpisode.ScriptImported)
                         {
-                            _existingExtraFiles.ImportExtraFiles(localEpisode.Series, localEpisode.PossibleExtraFiles);
+                            _existingExtraFiles.ImportExtraFiles(localEpisode.Series, localEpisode.PossibleExtraFiles, localEpisode.FileNameBeforeRename);
 
-                            if (localEpisode.FileRenamedAfterScriptImport)
+                            if (localEpisode.FileNameBeforeRename != episodeFile.RelativePath)
                             {
                                 _extraService.MoveFilesAfterRename(localEpisode.Series, episodeFile);
                             }

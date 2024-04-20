@@ -128,6 +128,13 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("Different show 1. Bölüm (23.10.2023) 720p WebDL AAC H.264 - TURG", "Different show",  1, 0, 0)]
         [TestCase("Dubbed show 79.BLM Sezon Finali(25.06.2023) 720p WEB-DL AAC2.0 H.264-TURG", "Dubbed show", 79, 0, 0)]
         [TestCase("Exclusive BLM Documentary with no false positives EP03.1080p.AAC.x264", "Exclusive BLM Documentary with no false positives", 3, 0, 0)]
+        [TestCase("[SubsPlease] Title de Series S2 - 03 (540p) [63501322]", "Title de Series S2", 3, 0, 0)]
+        [TestCase("[Naruto-Kun.Hu] Dr Series S3 - 21 [1080p]", "Dr Series S3", 21, 0, 0)]
+        [TestCase("[Naruto-Kun.Hu] Series Title - 12 [1080p].mkv", "Series Title", 12, 0, 0)]
+        [TestCase("[Naruto-Kun.Hu] Anime Triangle - 08 [1080p].mkv", "Anime Triangle", 8, 0, 0)]
+        [TestCase("[Mystic Z-Team] Series Title Super - Episode 013 VF - Non-censuré [720p].mp4", "Series Title Super", 13, 0, 0)]
+        [TestCase("Series Title Kai Episodio 13 Audio Latino", "Series Title Kai", 13, 0, 0)]
+        [TestCase("Series_Title_2_[01]_[AniLibria_TV]_[WEBRip_1080p]", "Series Title 2", 1, 0, 0)]
 
         // [TestCase("", "", 0, 0, 0)]
         public void should_parse_absolute_numbers(string postTitle, string title, int absoluteEpisodeNumber, int seasonNumber, int episodeNumber)
@@ -173,6 +180,7 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("[Erai-raws] Series-Title! 2 - 01~10 [1080p][Multiple Subtitle]", "Series-Title! 2", 1, 10)]
         [TestCase("[Erai-raws] Series Title! - 01 ~ 10 [1080p][Multiple Subtitle]", "Series Title!", 1, 10)]
         [TestCase("[Erai-raws] Series-Title! 2 - 01 ~ 10 [1080p][Multiple Subtitle]", "Series-Title! 2", 1, 10)]
+        [TestCase("Series_Title_2_[01-05]_[AniLibria_TV]_[WEBRip_1080p]", "Series Title 2", 1, 5)]
 
         // [TestCase("", "", 1, 2)]
         public void should_parse_multi_episode_absolute_numbers(string postTitle, string title, int firstAbsoluteEpisodeNumber, int lastAbsoluteEpisodeNumber)

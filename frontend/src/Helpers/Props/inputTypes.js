@@ -12,10 +12,12 @@ export const PASSWORD = 'password';
 export const PATH = 'path';
 export const QUALITY_PROFILE_SELECT = 'qualityProfileSelect';
 export const INDEXER_SELECT = 'indexerSelect';
+export const INDEXER_FLAGS_SELECT = 'indexerFlagsSelect';
 export const LANGUAGE_SELECT = 'languageSelect';
 export const DOWNLOAD_CLIENT_SELECT = 'downloadClientSelect';
 export const ROOT_FOLDER_SELECT = 'rootFolderSelect';
 export const SELECT = 'select';
+export const SERIES_TAG = 'seriesTag';
 export const DYNAMIC_SELECT = 'dynamicSelect';
 export const SERIES_TYPE_SELECT = 'seriesTypeSelect';
 export const TAG = 'tag';
@@ -44,6 +46,7 @@ export const all = [
   ROOT_FOLDER_SELECT,
   LANGUAGE_SELECT,
   SELECT,
+  SERIES_TAG,
   DYNAMIC_SELECT,
   SERIES_TYPE_SELECT,
   TAG,

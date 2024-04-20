@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using NzbDrone.Core.Annotations;
+using NzbDrone.Core.Languages;
 using NzbDrone.Core.Validation;
 
 namespace NzbDrone.Core.Indexers.Nyaa
@@ -25,6 +28,7 @@ namespace NzbDrone.Core.Indexers.Nyaa
             BaseUrl = "";
             AdditionalParameters = "&cats=1_0&filter=1";
             MinimumSeeders = IndexerDefaults.MINIMUM_SEEDERS;
+            MultiLanguages = Array.Empty<int>();
         }
 
         [FieldDefinition(0, Label = "IndexerSettingsWebsiteUrl")]
@@ -42,8 +46,11 @@ namespace NzbDrone.Core.Indexers.Nyaa
         [FieldDefinition(4)]
         public SeedCriteriaSettings SeedCriteria { get; set; } = new SeedCriteriaSettings();
 
-        [FieldDefinition(5, Type = FieldType.Checkbox, Label = "Reject Blocklisted Torrent Hashes While Grabbing", HelpText = "If a torrent is blocked by hash it may not properly be rejected during RSS/Search for some indexers, enabling this will allow it to be rejected after the torrent is grabbed, but before it is sent to the client.", Advanced = true)]
+        [FieldDefinition(5, Type = FieldType.Checkbox, Label = "IndexerSettingsRejectBlocklistedTorrentHashes", HelpText = "IndexerSettingsRejectBlocklistedTorrentHashesHelpText", Advanced = true)]
         public bool RejectBlocklistedTorrentHashesWhileGrabbing { get; set; }
+
+        [FieldDefinition(6, Type = FieldType.Select, SelectOptions = typeof(RealLanguageFieldConverter), Label = "IndexerSettingsMultiLanguageRelease", HelpText = "IndexerSettingsMultiLanguageReleaseHelpText", Advanced = true)]
+        public IEnumerable<int> MultiLanguages { get; set; }
 
         public NzbDroneValidationResult Validate()
         {

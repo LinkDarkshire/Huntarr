@@ -3,6 +3,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import TextTruncate from 'react-text-truncate';
+import Alert from 'Components/Alert';
 import HeartRating from 'Components/HeartRating';
 import Icon from 'Components/Icon';
 import Label from 'Components/Label';
@@ -57,7 +58,7 @@ function getExpandedState(newState) {
 }
 
 function getDateYear(date) {
-  const dateDate = moment(date);
+  const dateDate = moment.utc(date);
 
   return dateDate.format('YYYY');
 }
@@ -406,11 +407,14 @@ class SeriesDetails extends Component {
                         </span>
                     }
 
-                    <HeartRating
-                      rating={ratings.value}
-                      iconSize={20}
-                    />
-
+                    {
+                      ratings.value ?
+                        <HeartRating
+                          rating={ratings.value}
+                          iconSize={20}
+                        /> :
+                        null
+                    }
                     <SeriesGenres genres={genres} />
 
                     <span>
@@ -424,14 +428,16 @@ class SeriesDetails extends Component {
                     className={styles.detailsLabel}
                     size={sizes.LARGE}
                   >
-                    <Icon
-                      name={icons.FOLDER}
-                      size={17}
-                    />
 
-                    <span className={styles.path}>
-                      {path}
-                    </span>
+                    <div>
+                      <Icon
+                        name={icons.FOLDER}
+                        size={17}
+                      />
+                      <span className={styles.path}>
+                        {path}
+                      </span>
+                    </div>
                   </Label>
 
                   <Tooltip
@@ -440,16 +446,18 @@ class SeriesDetails extends Component {
                         className={styles.detailsLabel}
                         size={sizes.LARGE}
                       >
-                        <Icon
-                          name={icons.DRIVE}
-                          size={17}
-                        />
 
-                        <span className={styles.sizeOnDisk}>
-                          {
-                            formatBytes(sizeOnDisk || 0)
-                          }
-                        </span>
+                        <div>
+                          <Icon
+                            name={icons.DRIVE}
+                            size={17}
+                          />
+                          <span className={styles.sizeOnDisk}>
+                            {
+                              formatBytes(sizeOnDisk || 0)
+                            }
+                          </span>
+                        </div>
                       </Label>
                     }
                     tooltip={
@@ -466,32 +474,36 @@ class SeriesDetails extends Component {
                     title={translate('QualityProfile')}
                     size={sizes.LARGE}
                   >
-                    <Icon
-                      name={icons.PROFILE}
-                      size={17}
-                    />
 
-                    <span className={styles.qualityProfileName}>
-                      {
-                        <QualityProfileNameConnector
-                          qualityProfileId={qualityProfileId}
-                        />
-                      }
-                    </span>
+                    <div>
+                      <Icon
+                        name={icons.PROFILE}
+                        size={17}
+                      />
+                      <span className={styles.qualityProfileName}>
+                        {
+                          <QualityProfileNameConnector
+                            qualityProfileId={qualityProfileId}
+                          />
+                        }
+                      </span>
+                    </div>
                   </Label>
 
                   <Label
                     className={styles.detailsLabel}
                     size={sizes.LARGE}
                   >
-                    <Icon
-                      name={monitored ? icons.MONITORED : icons.UNMONITORED}
-                      size={17}
-                    />
 
-                    <span className={styles.qualityProfileName}>
-                      {monitored ? translate('Monitored') : translate('Unmonitored')}
-                    </span>
+                    <div>
+                      <Icon
+                        name={monitored ? icons.MONITORED : icons.UNMONITORED}
+                        size={17}
+                      />
+                      <span className={styles.qualityProfileName}>
+                        {monitored ? translate('Monitored') : translate('Unmonitored')}
+                      </span>
+                    </div>
                   </Label>
 
                   <Label
@@ -499,14 +511,16 @@ class SeriesDetails extends Component {
                     title={statusDetails.message}
                     size={sizes.LARGE}
                   >
-                    <Icon
-                      name={statusDetails.icon}
-                      size={17}
-                    />
 
-                    <span className={styles.qualityProfileName}>
-                      {statusDetails.title}
-                    </span>
+                    <div>
+                      <Icon
+                        name={statusDetails.icon}
+                        size={17}
+                      />
+                      <span className={styles.qualityProfileName}>
+                        {statusDetails.title}
+                      </span>
+                    </div>
                   </Label>
 
                   {
@@ -516,14 +530,16 @@ class SeriesDetails extends Component {
                         title={translate('Network')}
                         size={sizes.LARGE}
                       >
-                        <Icon
-                          name={icons.NETWORK}
-                          size={17}
-                        />
 
-                        <span className={styles.qualityProfileName}>
-                          {network}
-                        </span>
+                        <div>
+                          <Icon
+                            name={icons.NETWORK}
+                            size={17}
+                          />
+                          <span className={styles.qualityProfileName}>
+                            {network}
+                          </span>
+                        </div>
                       </Label>
                   }
 
@@ -533,14 +549,16 @@ class SeriesDetails extends Component {
                         className={styles.detailsLabel}
                         size={sizes.LARGE}
                       >
-                        <Icon
-                          name={icons.EXTERNAL_LINK}
-                          size={17}
-                        />
 
-                        <span className={styles.links}>
-                          {translate('Links')}
-                        </span>
+                        <div>
+                          <Icon
+                            name={icons.EXTERNAL_LINK}
+                            size={17}
+                          />
+                          <span className={styles.links}>
+                            {translate('Links')}
+                          </span>
+                        </div>
                       </Label>
                     }
                     tooltip={
@@ -601,13 +619,19 @@ class SeriesDetails extends Component {
             }
 
             {
-              !isFetching && episodesError &&
-                <div>{translate('EpisodesLoadError')}</div>
+              !isFetching && episodesError ?
+                <Alert kind={kinds.DANGER}>
+                  {translate('EpisodesLoadError')}
+                </Alert> :
+                null
             }
 
             {
-              !isFetching && episodeFilesError &&
-                <div>{translate('EpisodeFilesLoadError')}</div>
+              !isFetching && episodeFilesError ?
+                <Alert kind={kinds.DANGER}>
+                  {translate('EpisodeFilesLoadError')}
+                </Alert> :
+                null
             }
 
             {
@@ -630,10 +654,11 @@ class SeriesDetails extends Component {
             }
 
             {
-              isPopulated && !seasons.length &&
-                <div>
+              isPopulated && !seasons.length ?
+                <Alert kind={kinds.WARNING}>
                   {translate('NoEpisodeInformation')}
-                </div>
+                </Alert> :
+                null
             }
 
           </div>
